@@ -71,7 +71,8 @@ extension _MessagePackDecoder {
         
         func checkCanDecodeValue() throws {
             guard !self.isAtEnd else {
-                throw DecodingError.dataCorruptedError(in: self, debugDescription: "Unexpected end of data")
+                let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Unexpected end of data", underlyingError: MessagePackError.prematureEndOfData)
+                throw DecodingError.dataCorrupted(context)
             }
         }
     }

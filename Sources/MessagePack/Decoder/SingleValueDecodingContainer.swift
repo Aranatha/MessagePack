@@ -20,7 +20,8 @@ extension _MessagePackDecoder {
         
         func checkCanDecode<T>(_ type: T.Type, format: UInt8) throws {
             guard self.index <= self.data.endIndex else {
-                throw DecodingError.dataCorruptedError(in: self, debugDescription: "Unexpected end of data")
+                let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Unexpected end of data", underlyingError: MessagePackError.prematureEndOfData)
+                throw DecodingError.dataCorrupted(context)
             }
             
             guard self.data[self.index] == format else {

@@ -114,7 +114,7 @@ extension MessagePackDecodingContainer {
     func read(_ length: Int) throws -> Data {
         let nextIndex = self.index.advanced(by: length)
         guard nextIndex <= self.data.endIndex else {
-            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Unexpected end of data")
+            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Unexpected end of data", underlyingError: MessagePackError.prematureEndOfData)
             throw DecodingError.dataCorrupted(context)
         }
         defer { self.index = nextIndex }
