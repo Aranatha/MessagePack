@@ -11,7 +11,13 @@ final public class MessagePackDecoder {
      by providing contextual information.
      */
     public var userInfo: [CodingUserInfoKey : Any] = [:]
-    
+
+    /**
+     Number of bytes decoded during the last call to `decode`.
+     This is not cumulative.
+    */
+    public private(set) var decodedByteCount: Int = 0
+
     /**
      Returns a value of the type you specify,
      decoded from a MessagePack object.
@@ -26,7 +32,10 @@ final public class MessagePackDecoder {
     public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
         let decoder = _MessagePackDecoder(data: data)
         decoder.userInfo = self.userInfo
-        
+        defer {
+            decodedByteCount = decoder.container?.index ?? 0
+        }
+
         switch type {
         case is Data.Type:
             let box = try Box<Data>(from: decoder)

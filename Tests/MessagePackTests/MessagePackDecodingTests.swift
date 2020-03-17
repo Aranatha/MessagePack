@@ -109,6 +109,16 @@ class MessagePackDecodingTests: XCTestCase {
         XCTAssertEqual(value, ["1": date])
     }
 
+    func testDecodeLeftovers() {
+        let data = Data(bytes: [0x2A, 0x2A])
+        let value = try! decoder.decode(Int.self, from: data)
+        XCTAssertEqual(value, 42)
+        XCTAssertEqual(decoder.decodedByteCount, 1)
+        let leftoverData = data[decoder.decodedByteCount...]
+        let secondValue = try! decoder.decode(Int.self, from: leftoverData)
+        XCTAssertEqual(secondValue, 42)
+    }
+
     static var allTests = [
         ("testDecodeNil", testDecodeNil),
         ("testDecodeFalse", testDecodeFalse),
