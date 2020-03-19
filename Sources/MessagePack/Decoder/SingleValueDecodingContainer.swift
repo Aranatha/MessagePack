@@ -209,6 +209,63 @@ extension _MessagePackDecoder.SingleValueContainer: SingleValueDecodingContainer
             return value
         }
     }
+
+	func decodeToCodingKey() throws -> AnyCodingKey? {
+		func readStringData(length: Int) -> AnyCodingKey? {
+			let bytes = self.data.subdata(in: self.index..<self.index.advanced(by: length))
+			let string = String(bytes: bytes, encoding: .utf8) ?? "<\(bytes.base64EncodedData())>"
+			return AnyCodingKey(stringValue: string)
+		}
+
+		let format = try readByte()
+		switch format {
+		// bool
+		case 0xc2:
+			return AnyCodingKey(stringValue: "false")
+		case 0xc3:
+			return AnyCodingKey(stringValue: "true")
+		// string
+		case 0xa0...0xbf:
+			return readStringData(length: Int(format - 0xa0))
+		case 0xd9:
+			return readStringData(length: Int(try read(UInt8.self)))
+		case 0xda:
+			return readStringData(length: Int(try read(UInt16.self)))
+		case 0xdb:
+			return readStringData(length: Int(try read(UInt32.self)))
+		// integers
+		case 0x00...0x7f:
+			return AnyCodingKey(intValue: Int(format))
+		case 0xcc:
+			return AnyCodingKey(intValue: Int(try read(UInt8.self)))
+		case 0xcd:
+			return AnyCodingKey(intValue: Int(try read(UInt16.self)))
+		case 0xce:
+			return AnyCodingKey(intValue: Int(try read(UInt32.self)))
+		case 0xcf:
+			return AnyCodingKey(intValue: Int(try read(UInt64.self)))
+		case 0xd0:
+			return AnyCodingKey(intValue: Int(try read(Int8.self)))
+		case 0xd1:
+			return AnyCodingKey(intValue: Int(try read(Int16.self)))
+		case 0xd2:
+			return AnyCodingKey(intValue: Int(try read(Int32.self)))
+		case 0xd3:
+			return AnyCodingKey(intValue: Int(try read(Int64.self)))
+		case 0xe0...0xff:
+			return AnyCodingKey(intValue: Int(Int8(bitPattern: format)))
+		// data
+		case 0xc4:
+			return readStringData(length: Int(try read(UInt8.self)))
+		case 0xc5:
+			return readStringData(length: Int(try read(UInt16.self)))
+		case 0xc6:
+			return readStringData(length: Int(try read(UInt32.self)))
+		default:
+			return nil
+		}
+	}
+
 }
 
 extension _MessagePackDecoder.SingleValueContainer: MessagePackDecodingContainer {}

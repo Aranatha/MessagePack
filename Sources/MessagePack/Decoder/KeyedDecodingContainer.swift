@@ -21,9 +21,10 @@ extension _MessagePackDecoder {
                         fatalError() // FIXME
                     }
                     
-                    let key = try keyContainer.decode(String.self)
-                    container.codingPath += [AnyCodingKey(stringValue: key)!]
-                    nestedContainers[key] = container
+					if let key = try keyContainer.decodeToCodingKey() {
+						container.codingPath += [key]
+						nestedContainers[key.stringValue] = container
+					}
                 }
             } catch {
                 fatalError("\(error)") // FIXME

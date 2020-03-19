@@ -1,7 +1,7 @@
 struct AnyCodingKey: CodingKey, Equatable {
     var stringValue: String
     var intValue: Int?
-    
+
     init?(stringValue: String) {
         self.stringValue = stringValue
         self.intValue = nil
@@ -22,7 +22,21 @@ struct AnyCodingKey: CodingKey, Equatable {
 }
 
 extension AnyCodingKey: Hashable {
-    var hashValue: Int {
-        return self.intValue?.hashValue ?? self.stringValue.hashValue
-    }
+	func hash(into hasher: inout Hasher) {
+		if let int = intValue {
+			int.hash(into: &hasher)
+		} else {
+			stringValue.hash(into: &hasher)
+		}
+	}
+}
+
+extension CodingKey {
+	init?(_ key: AnyCodingKey) {
+		if let int = key.intValue {
+			self.init(intValue: int)
+		} else {
+			self.init(stringValue: key.stringValue)
+		}
+	}
 }
