@@ -75,7 +75,25 @@ class MessagePackDecodingTests: XCTestCase {
         let value2 = try! decoder.decode([Int: Int].self, from: data)
         XCTAssertEqual(value2, [1: 1, 2: 2, 3: 3])
     }
-    
+
+    func testDecodeDictionaryWithCustomKeyType() {
+		enum Key: String, CodingKey {
+			case a, b, c
+		}
+		struct Dict: Decodable {
+			var content: [Key: Int] = [:]
+			init(from decoder: Decoder) throws {
+				let container = try decoder.container(keyedBy: Key.self)
+				for key in container.allKeys {
+					content[key] = try container.decode(Int.self, forKey: key)
+				}
+			}
+		}
+        let data = Data(bytes: [0x83, 0xA1, 0x62, 0x02, 0xA1, 0x61, 0x01, 0xA1, 0x63, 0x03])
+        let value = try! decoder.decode(Dict.self, from: data)
+		XCTAssertEqual(value.content, [.a: 1, .b: 2, .c: 3])
+    }
+
     func testDecodeData() {
         let data = Data(bytes: [0xC4, 0x05, 0x68, 0x65, 0x6C, 0x6C, 0x6F])
         let value = try! decoder.decode(Data.self, from: data)
